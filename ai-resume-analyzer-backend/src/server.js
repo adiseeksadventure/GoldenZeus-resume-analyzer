@@ -6,8 +6,6 @@ const authRoutes = require("./routes/auth.routes");
 const resumeRoutes = require("./routes/resume.routes");
 const analysisRoutes = require("./routes/analysis.routes");
 
-
-
 const app = express();
 
 // CORS configuration
@@ -16,19 +14,36 @@ app.use(cors({
   credentials: true
 }));
 
+// middleware
 app.use(express.json());
 
+// routes
 app.use("/auth", authRoutes);
-
 app.use("/resume", resumeRoutes);
-
 app.use("/analysis", analysisRoutes);
 
+// system routes
 
+// Root check
 app.get("/", (req, res) => {
-  res.send("Server running");
+  res.status(200).json({
+    status: "API running",
+    service: "goldenzeus-ai-resume-analyzer",
+    timestamp: new Date().toISOString()
+  });
 });
 
+// Health endpoint 
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: process.uptime(),
+    memory: process.memoryUsage().rss,
+    timestamp: new Date().toISOString()
+  });
+});
+
+//server bind
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
