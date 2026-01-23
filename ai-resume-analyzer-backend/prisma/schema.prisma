@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique 
+  password String
+  createdAt DateTime @default(now())
+
+  resumes Resume[]
+  jobs JobDescription[]
+}
+
+model Resume {
+  id         String   @id @default(uuid())
+  fileUrl    String
+
+  rawText    String?  // extracted + cleaned resume text
+  parsedData Json?    // structured AI output
+
+  createdAt  DateTime @default(now())
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+
+  analyses   Analysis[]
+}
+
+
+model JobDescription {
+  id         String   @id @default(uuid())
+  title      String?
+  rawText    String
+  parsedData Json
+
+  createdAt  DateTime @default(now())
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+
+  analyses   Analysis[]
+}
+
+
+model Analysis {
+  id           String   @id @default(uuid())
+  analysisJson Json
+  createdAt    DateTime @default(now())
+
+  resumeId         String? 
+  jobDescriptionId String? 
+
+  resume           Resume?          @relation(fields: [resumeId], references: [id]) 
+  jobDescription   JobDescription?  @relation(fields: [jobDescriptionId], references: [id]) 
+}
+
+
+model EmbeddingCache {
+  id        String   @id @default(uuid())
+  textHash  String   @unique
+  vector    Float[]
+  createdAt DateTime @default(now())
+}
+

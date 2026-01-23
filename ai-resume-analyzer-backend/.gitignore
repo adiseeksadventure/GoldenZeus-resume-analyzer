@@ -1,0 +1,11 @@
+.env
+node_modules
+
+uploads/
+node_modules/.prisma/
+prisma/client.js
+*.log
+.DS_Store
+Thumbs.db
+package-lock.json
+frontend/src/assets/goldenzeus-logo.jpeg
