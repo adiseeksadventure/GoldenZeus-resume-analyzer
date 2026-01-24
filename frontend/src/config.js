@@ -1,5 +1,9 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!API_BASE_URL) {
+  console.error("VITE_API_BASE_URL is missing. Check Vercel env variables.");
+}
 
 export const API_ENDPOINTS = {
   auth: {
@@ -35,7 +39,6 @@ export const authenticatedFetch = async (url, options = {}) => {
   });
 
   if (response.status === 401) {
-    // Token expired or invalid
     localStorage.removeItem('token');
     window.location.href = '/login';
     throw new Error('Unauthorized');
