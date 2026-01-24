@@ -8,30 +8,35 @@ datasource db {
 }
 
 model User {
-  id String @id @default(uuid())
-  email String @unique 
-  password String
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
   createdAt DateTime @default(now())
 
   resumes Resume[]
-  jobs JobDescription[]
+  jobs    JobDescription[]
 }
 
 model Resume {
   id         String   @id @default(uuid())
-  fileUrl    String
 
-  rawText    String?  // extracted + cleaned resume text
-  parsedData Json?    // structured AI output
+  // Storage metadata
+  fileUrl    String
+  storage    String   @default("supabase")  // supabase | s3 | gcs | local
+  status     String   @default("uploaded")  // uploaded | parsed | analyzed | failed
+
+  // AI pipeline data
+  rawText    String?  
+  parsedData Json?    
 
   createdAt  DateTime @default(now())
 
+  // Relations
   userId     String
   user       User     @relation(fields: [userId], references: [id])
 
   analyses   Analysis[]
 }
-
 
 model JobDescription {
   id         String   @id @default(uuid())
@@ -47,19 +52,17 @@ model JobDescription {
   analyses   Analysis[]
 }
 
-
 model Analysis {
   id           String   @id @default(uuid())
   analysisJson Json
   createdAt    DateTime @default(now())
 
-  resumeId         String? 
-  jobDescriptionId String? 
+  resumeId         String?
+  jobDescriptionId String?
 
-  resume           Resume?          @relation(fields: [resumeId], references: [id]) 
-  jobDescription   JobDescription?  @relation(fields: [jobDescriptionId], references: [id]) 
+  resume         Resume?         @relation(fields: [resumeId], references: [id])
+  jobDescription JobDescription? @relation(fields: [jobDescriptionId], references: [id])
 }
-
 
 model EmbeddingCache {
   id        String   @id @default(uuid())
