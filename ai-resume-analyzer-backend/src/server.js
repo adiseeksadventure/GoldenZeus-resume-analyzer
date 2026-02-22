@@ -2,50 +2,93 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+
 const authRoutes = require("./routes/auth.routes");
 const resumeRoutes = require("./routes/resume.routes");
 const analysisRoutes = require("./routes/analysis.routes");
 
 const app = express();
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
-  credentials: true
-}));
 
-// middleware
-app.use(express.json());
+// Production-safe CORS
 
-// routes
+
+const allowedOrigin =
+  process.env.FRONTEND_URL || "http://localhost:5173";
+
+app.use(
+  cors({
+    origin: allowedOrigin,
+    credentials: true,
+  })
+);
+
+
+// Middleware
+
+
+// Allow larger payloads for resume parsing / embeddings
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+
+// Routes
+
+
 app.use("/auth", authRoutes);
 app.use("/resume", resumeRoutes);
 app.use("/analysis", analysisRoutes);
 
-// system routes
 
-// Root check
+
+// System / Health Routes
+
+
+// Root endpoint (Render uses this for initial validation)
 app.get("/", (req, res) => {
   res.status(200).json({
     status: "API running",
     service: "goldenzeus-ai-resume-analyzer",
-    timestamp: new Date().toISOString()
+    environment: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Health endpoint 
+
+// Health endpoint (useful for uptime monitoring)
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
-    uptime: process.uptime(),
-    memory: process.memoryUsage().rss,
-    timestamp: new Date().toISOString()
+    uptime_seconds: process.uptime(),
+    memory_usage_bytes: process.memoryUsage().rss,
+    timestamp: new Date().toISOString(),
   });
 });
 
-//server bind
+
+
+// Global Error Handler
+
+
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+
+  res.status(err.status || 500).json({
+    status: "error",
+    message: err.message || "Internal Server Error",
+  });
+});
+
+
+
+// Start Server
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("=================================");
+  console.log("GoldenZeus Backend Running");
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`Port: ${PORT}`);
+  console.log(`URL: http://localhost:${PORT}`);
+  console.log("=================================");
 });
