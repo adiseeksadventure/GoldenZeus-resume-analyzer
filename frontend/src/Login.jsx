@@ -50,7 +50,7 @@ function Login() {
 
         {/* LEFT: System Identity */}
         <div className="system-identity">
-          <div className="gz-title">GoldenZeus</div>
+          <div className="gz-title">HireMatch</div>
           <div className="gz-subtitle">AI Resume Intelligence Engine</div>
         </div>
 
