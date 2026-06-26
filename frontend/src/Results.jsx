@@ -1,11 +1,11 @@
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  AlertCircle, 
-  ChevronDown, 
+import {
+  ArrowLeft,
+  CheckCircle,
+  AlertCircle,
+  ChevronDown,
   LogOut,
   Target,
   Zap,
@@ -14,51 +14,41 @@ import {
 } from 'lucide-react';
 import './Results.css';
 
-// Analytical Semicircular Score Component - Deterministic Progress Gauge
-const ScoreArc = ({ score }) => {
-  const radius = 90; // Increased radius for larger arc diameter
-  // Fixed semicircle path: starts at left (10, 100), ends at right (190, 100), opens downward (∩)
-  const arcPath = "M 10 100 A 90 90 0 0 1 190 100";
-  const totalLength = Math.PI * radius; // Circumference of semicircle
-  
-  // Validate and clamp score to 0-100 range
-  const safeScore = Number.isFinite(score) && score >= 0 && score <= 100 
-    ? Math.max(0, Math.min(100, score)) 
-    : (score === null || score === undefined ? null : 0);
-  
-  // Calculate dashOffset: totalLength * (1 - score / 100)
-  // score = 0 → dashOffset = totalLength (empty arc)
-  // score = 50 → dashOffset = totalLength * 0.5 (half-filled)
-  // score = 100 → dashOffset = 0 (full arc)
-  const progressPercentage = safeScore !== null ? safeScore / 100 : 0;
-  const dashOffset = totalLength * (1 - progressPercentage);
+// Helper: classify a score into a tier (shared thresholds across the page)
+const scoreTier = (s) => (s >= 70 ? 'strong' : s >= 50 ? 'good' : 'weak');
 
-  const getArcColor = (s) => {
-    // Use white/light colors for arc on gradient background
-    if (s >= 70) return '#ffffff';
-    if (s >= 50) return '#fbbf24';
-    return '#f87171';
-  };
+// Deterministic 270° dial gauge. Presentation only — clamps and renders `score`.
+const ScoreGauge = ({ score }) => {
+  const r = 82;
+  // 270° arc with the gap centered at the bottom
+  const arcPath = "M 42.02 157.98 A 82 82 0 1 1 157.98 157.98";
+  const arcLength = (270 / 360) * 2 * Math.PI * r;
+
+  // Validate and clamp score to 0-100 range (unchanged behavior)
+  const safeScore = Number.isFinite(score) && score >= 0 && score <= 100
+    ? Math.max(0, Math.min(100, score))
+    : (score === null || score === undefined ? null : 0);
+
+  const progressPercentage = safeScore !== null ? safeScore / 100 : 0;
+  const dashOffset = arcLength * (1 - progressPercentage);
+  const tier = scoreTier(safeScore ?? 0);
 
   return (
-    <div className="arc-container-center">
-      <svg className="svg-score-arc" viewBox="0 0 200 100">
-        {/* Background arc (full semicircle, always visible) */}
+    <div className="gauge">
+      <svg className="gauge-svg" viewBox="0 0 200 200">
+        <path className="gauge-track" d={arcPath} fill="none" />
         <path
-          className="arc-bg-path"
+          className={`gauge-fill g-${tier}`}
           d={arcPath}
           fill="none"
-        />
-        {/* Progress arc (fills based on score using stroke-dashoffset) */}
-        <path
-          className="arc-fill-path"
-          d={arcPath}
-          stroke={getArcColor(safeScore ?? 0)}
-          strokeDasharray={totalLength}
+          strokeDasharray={arcLength}
           strokeDashoffset={dashOffset}
-          fill="none"
         />
       </svg>
+      <div className="gauge-center">
+        <span className={`gauge-num n-${tier}`}>{safeScore ?? '--'}</span>
+        <span className="gauge-denom">out of 100</span>
+      </div>
     </div>
   );
 };
@@ -91,19 +81,28 @@ function Results() {
           <div className="nav-left">
             <button className="back-btn" onClick={() => navigate('/upload')}>
               <ArrowLeft size={16} />
-              Back to Upload
+              <span>Back</span>
             </button>
-            <span className="nav-breadcrumb">Evaluation Report / Scorecard</span>
+            <span className="nav-divider" />
+            <div className="nav-brand">
+              <span className="brand-mark">HM</span>
+              <span className="brand-name">HireMatch</span>
+            </div>
           </div>
           <div className="nav-right" />
         </nav>
-        <div className="results-layout">
-          <main className="analysis-col">
-            <section className="overall-score-section">
-              <div className="score-subtitle">No analysis to display</div>
-              <p className="score-exp-text">Run a new resume + job description match to generate a scorecard.</p>
-            </section>
-          </main>
+        <div className="results-empty">
+          <section className="empty-card">
+            <span className="score-eyebrow">Scorecard</span>
+            <h2 className="empty-title">No analysis to display</h2>
+            <p className="empty-text">
+              Run a new resume and job description match to generate a scorecard.
+            </p>
+            <button className="empty-cta" onClick={() => navigate('/upload')}>
+              Go to Upload
+              <ArrowRight size={16} />
+            </button>
+          </section>
         </div>
       </div>
     );
@@ -152,15 +151,24 @@ function Results() {
         <div className="nav-left">
           <button className="back-btn" onClick={() => navigate('/upload')}>
             <ArrowLeft size={16} />
-            Back to Upload
+            <span>Back</span>
           </button>
-          <span className="nav-breadcrumb">
-            {jdTitle || 'Evaluation Report'} / Scorecard
-          </span>
+          <span className="nav-divider" />
+          <div className="nav-brand">
+            <span className="brand-mark">HM</span>
+            <span className="brand-name">HireMatch</span>
+          </div>
+          <span className="nav-divider nav-divider-hide" />
+          <div className="nav-breadcrumb">
+            <span className="bc-title">{jdTitle || 'Evaluation Report'}</span>
+            <span className="bc-sep">/</span>
+            <span className="bc-current">Scorecard</span>
+          </div>
         </div>
         <div className="nav-right">
-          <button className="logout-btn" onClick={handleLogout} title="Logout">
-            <LogOut size={18} />
+          <button className="logout-btn" onClick={handleLogout} title="Sign out">
+            <LogOut size={16} />
+            <span>Sign out</span>
           </button>
         </div>
       </nav>
@@ -224,12 +232,14 @@ function Results() {
           
           {/* Section 1: Overall Resume Score */}
           <section className="overall-score-section">
-            <ScoreArc score={overallScore} />
-            <div className="score-number-container">
-              <div className="score-number">{overallScore ?? '--'} / 100</div>
-            </div>
+            <span className="score-eyebrow">Overall Match</span>
+            <ScoreGauge score={overallScore} />
+            <div className="score-meta">{getQualitativeTag(overallScore)}</div>
             <h2 className="score-subtitle">Your Resume Score</h2>
-            <p className="score-exp-text">This score is calculated based on the variables listed below.</p>
+            <p className="score-exp-text">
+              Calculated from the four signals below, weighted against the job
+              description you provided.
+            </p>
           </section>
 
           {/* Section 2: Category Scores List */}
@@ -275,7 +285,8 @@ function Results() {
           {/* Section 3: ATS Compatibility Card */}
           <section className="ats-score-card">
             <div className="ats-header">
-            <h3 className="ats-title">ATS Compatibility Score – {analysisResult.atsScore} / 100</h3>
+              <h3 className="ats-title">ATS Compatibility</h3>
+              <span className="ats-pill">{analysisResult.atsScore} / 100</span>
             </div>
             <p className="ats-desc">
               How well does your resume pass through Applicant Tracking Systems? 

@@ -1,4 +1,5 @@
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Landing from './Landing';
 import Login from './Login';
 import Register from './Register';
 import ResumeUpload from './ResumeUpload';
@@ -8,7 +9,7 @@ import './App.css';
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/login" replace />,
+    element: <Landing />,
   },
   {
     path: '/login',

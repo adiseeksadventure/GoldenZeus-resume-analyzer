@@ -50,8 +50,13 @@ function Login() {
 
         {/* LEFT: System Identity */}
         <div className="system-identity">
-          <div className="gz-title">HireMatch</div>
-          <div className="gz-subtitle">AI Resume Intelligence Engine</div>
+          <span className="gz-eyebrow">Resume Intelligence Engine</span>
+          <div className="gz-title">Hire<b>Match</b></div>
+          <p className="gz-subtitle">
+            Upload your resume, paste a job description, and see exactly where you
+            stand. We score the match, surface missing skills, and show you what to
+            fix next.
+          </p>
         </div>
 
         {/* RIGHT: Login Card */}
